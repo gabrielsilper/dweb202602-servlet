@@ -1,4 +1,4 @@
-package com.github.gabrielsilper.dwebservlets.server;
+package com.github.gabrielsilper.dwebservlets;
 
 import com.github.gabrielsilper.dwebservlets.servlet.HelloIfamServlet;
 import org.apache.catalina.Context;
@@ -7,7 +7,7 @@ import org.apache.catalina.startup.Tomcat;
 
 import java.io.File;
 
-public class StartServer {
+public class MainServer {
     public static void main(String[] args) throws LifecycleException {
         Tomcat tomcat = new Tomcat();
 
