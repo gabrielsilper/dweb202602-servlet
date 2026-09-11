@@ -28,6 +28,8 @@ public class HelloIfamServlet extends HttpServlet {
                 cityManaus
         );
 
+        String personsTable = this.getPersonsTable(person);
+
         resp.setContentType("text/html");
         resp.getWriter().printf("""
                         <!DOCTYPE html>
@@ -39,14 +41,43 @@ public class HelloIfamServlet extends HttpServlet {
                         </head>
                         <body>
                             <h1>Olá IFAM!</h1>
-                            <h2>Pessoa</h2>
-                            <p>Nome: %s</p>
-                            <p>Telefone: %s</p>
-                            <p>Email: %s</p>
-                            <p>Cidade: %s</p>
-                            <p>Estado: %s</p>
+                            %s
                         </body>
                         </html>
+                """, personsTable);
+    }
+
+    private String getPersonsTable(Person person) {
+        String personFieldsRows = this.getPersonFieldsRows(person);
+
+        return String.format("""
+                    <table>
+                        <caption>Tabela de pessoas</caption>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Email</th>
+                                <th>Cidade</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            %s
+                        </tbody>
+                    </table>
+                """, personFieldsRows);
+    }
+
+    String getPersonFieldsRows(Person person) {
+        return String.format("""
+                    <tr>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                    </tr>
                 """,
                 person.getName(), person.getPhone(), person.getEmail(),
                 person.getCity().getName(), person.getCity().getState().getName());
