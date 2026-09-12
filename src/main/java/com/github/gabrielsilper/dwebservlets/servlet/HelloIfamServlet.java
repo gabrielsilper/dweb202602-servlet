@@ -3,18 +3,20 @@ package com.github.gabrielsilper.dwebservlets.servlet;
 import com.github.gabrielsilper.dwebservlets.model.City;
 import com.github.gabrielsilper.dwebservlets.model.Person;
 import com.github.gabrielsilper.dwebservlets.model.State;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class HelloIfamServlet extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        List<Person> persons = this.getPersonsList();
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String nameInputParameter = req.getParameter("name-input");
+
+        List<Person> persons = this.getPersonsList(nameInputParameter);
         String personsTable = this.getPersonsTable(persons);
 
         resp.setContentType("text/html");
@@ -28,6 +30,13 @@ public class HelloIfamServlet extends HttpServlet {
                         </head>
                         <body>
                             <h1>Olá IFAM!</h1>
+                            <form method="get" action="helloifam">
+                                <div>
+                                    <label for="name-input">Filtra por nome:</label>
+                                    <input type="text" id="name-input" name="name-input" placeholder="Digite o nome que deseja filtrar..."/>
+                                </div>
+                                <button type="submit">Filtrar</button>
+                            </form>
                             %s
                         </body>
                         </html>
@@ -72,7 +81,7 @@ public class HelloIfamServlet extends HttpServlet {
         return sb.toString();
     }
 
-    private List<Person> getPersonsList() {
+    private List<Person> getPersonsList(String nameFilter) {
         State stateAmazonas = new State();
         stateAmazonas.setName("Amazonas");
         stateAmazonas.setStateCode("AM");
@@ -102,6 +111,12 @@ public class HelloIfamServlet extends HttpServlet {
                 cityManaus
         );
 
-        return List.of(person1, person2, person3);
+        if (nameFilter == null || nameFilter.isEmpty()) {
+            return List.of(person1, person2, person3);
+        }
+
+        return Stream.of(person1, person2, person3)
+                .filter(person -> person.getName().toLowerCase().contains(nameFilter.toLowerCase()))
+                .toList();
     }
 }
