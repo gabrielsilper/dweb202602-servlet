@@ -1,6 +1,6 @@
 package com.github.gabrielsilper.dwebservlets;
 
-import com.github.gabrielsilper.dwebservlets.servlet.HelloIfamServlet;
+import com.github.gabrielsilper.dwebservlets.servlet.PessoaServlet;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
@@ -20,10 +20,10 @@ public class MainServer {
 
         Context context = tomcat.addWebapp("", webapp);
 
-        String servletName = "HelloIfamServlet";
+        String servletName = "PessoaServlet";
 
-        Tomcat.addServlet(context, servletName, new HelloIfamServlet());
-        context.addServletMappingDecoded("/helloifam", servletName);
+        Tomcat.addServlet(context, servletName, new PessoaServlet());
+        context.addServletMappingDecoded("/pessoa", servletName);
 
         System.out.println("Starting server and listening on port" + port + "...");
 

@@ -11,13 +11,23 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class HelloIfamServlet extends HttpServlet {
+public class PessoaServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String nameInputParameter = req.getParameter("name-input");
+        String actionParameter = req.getParameter("action");
+
+        if (actionParameter ==  null) {
+            actionParameter = "listar";
+        }
 
         List<Person> persons = this.getPersonsList(nameInputParameter);
-        String personsTable = this.getPersonsTable(persons);
+
+        String personsTable = "";
+        if (actionParameter.equalsIgnoreCase("listar")) {
+            personsTable = this.getPersonsTable(persons);
+        }
+
 
         resp.setContentType("text/html");
         resp.getWriter().printf("""
@@ -47,7 +57,7 @@ public class HelloIfamServlet extends HttpServlet {
         String personDataFieldsRows = this.getPersonDataFieldsRows(persons);
 
         return String.format("""
-                    <table>
+                    <table border="1">
                         <caption>Tabela de pessoas</caption>
                         <thead>
                             <tr>
