@@ -8,10 +8,72 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Objects;
 
 public class PessoaServlet extends HttpServlet {
+    private final ArrayList<Person> personList;
+    private final ArrayList<City> cityList;
+
+    public PessoaServlet() {
+        State stateAmazonas = new State();
+        stateAmazonas.setName("Amazonas");
+        stateAmazonas.setStateCode("AM");
+
+        State statePara = new State();
+        statePara.setName("Pará");
+        statePara.setStateCode("PA");
+
+        City cityManaus = new City();
+        cityManaus.setName("Manaus");
+        cityManaus.setState(stateAmazonas);
+
+        City cityIranduba = new City();
+        cityIranduba.setName("Iranduba");
+        cityIranduba.setState(stateAmazonas);
+
+        City citySantarem = new City();
+        citySantarem.setName("Santarém");
+        citySantarem.setState(statePara);
+
+        cityList = new ArrayList<>();
+        cityList.add(cityManaus);
+        cityList.add(cityIranduba);
+        cityList.add(citySantarem);
+
+        Person person1 = new Person(
+                "Gabriel",
+                "gabriel@test.com",
+                "92 99999-9999",
+                cityManaus
+        );
+
+        Person person2 = new Person(
+                "Fulano",
+                "fulano@test.com",
+                "92 99888-8888",
+                cityManaus
+        );
+
+        Person person3 = new Person(
+                "Beltrana",
+                "beltrana@test.com",
+                "92 99777-7777",
+                cityManaus
+        );
+
+        this.personList = new ArrayList<>();
+        this.personList.add(person1);
+        this.personList.add(person2);
+        this.personList.add(person3);
+    }
+
+    public PessoaServlet(ArrayList<Person> personList, ArrayList<City> cityList) {
+        this.personList = personList;
+        this.cityList = cityList;
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String searchNameInputParameter = req.getParameter("search-name-input");
@@ -26,6 +88,8 @@ public class PessoaServlet extends HttpServlet {
         String personsHeaderContent = "";
         String personsMain = "";
 
+        verifyPersonDataToRegister(req, resp);
+
         if (actionParameter.equalsIgnoreCase("listar")) {
             personsHeaderContent = this.getPersonHeaderContent();
             personsMain = this.getPersonsTable(persons);
@@ -35,6 +99,7 @@ public class PessoaServlet extends HttpServlet {
 
 
         resp.setContentType("text/html");
+        resp.setCharacterEncoding("UTF-8");
         resp.getWriter().printf("""
                 <!DOCTYPE html>
                 <html lang="pt-BR">
@@ -106,8 +171,10 @@ public class PessoaServlet extends HttpServlet {
     }
 
     private String getFormCadastrarPessoa() {
-        return """
-                <form method="post" action="pessoa">
+        String citiesOptions = getCitiesOptions();
+
+        return String.format("""
+                <form method="get" action="pessoa">
                     <div>
                         <label for="name-input">Nome:</label>
                         <input type="text" id="name-input" name="name-input" placeholder="Nome da Pessoa"/>
@@ -122,52 +189,56 @@ public class PessoaServlet extends HttpServlet {
                     </div>
                     <div>
                         <label for="city-input">Cidade:</label>
-                        <input type="text" id="city-input" name="city-input" placeholder="Cidade da pessoa..."/>
+                        <select id="city-input" name="city-input">
+                            %s
+                        </select>
                     </div>
-                    <div>
-                        <label for="state-input">Estado:</label>
-                        <input type="text" id="state-input" name="state-input" placeholder="Estado da cidade..."/>
-                    </div>
-                    <button type="submit">Cadastrar</button>
+                    <button type="submit" name="save" value="true">Salvar</button>
+                    <a href="pessoa">Cancelar</a>
                 </form>
-                """;
+                """, citiesOptions);
+    }
+
+    public String getCitiesOptions() {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < cityList.size(); i++){
+            sb.append("\t<option value='").append(i).append("'>")
+                    .append(cityList.get(i).getName()).append("/").append(cityList.get(i).getState().getStateCode())
+                    .append("</option>\n");
+        }
+
+        return sb.toString();
+    }
+
+    private void verifyPersonDataToRegister(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String name = req.getParameter("name-input");
+        String email = req.getParameter("email-input");
+        String phone = req.getParameter("phone-input");
+        String city = req.getParameter("city-input");
+
+        if (req.getParameter("save") == null
+                || name == null || name.isBlank()
+                || email == null || email.isBlank()
+                || phone == null || phone.isBlank()
+                || city == null || city.isBlank()
+        ) {
+            return;
+        }
+
+        Person person = new Person(name, email, phone, cityList.get(Integer.parseInt(city)));
+
+        this.personList.add(person);
+
+        resp.sendRedirect("pessoa");
     }
 
     private List<Person> getPersonsList(String nameFilter) {
-        State stateAmazonas = new State();
-        stateAmazonas.setName("Amazonas");
-        stateAmazonas.setStateCode("AM");
-
-        City cityManaus = new City();
-        cityManaus.setName("Manaus");
-        cityManaus.setState(stateAmazonas);
-
-        Person person1 = new Person(
-                "Gabriel",
-                "gabriel@test.com",
-                "92 99999-9999",
-                cityManaus
-        );
-
-        Person person2 = new Person(
-                "Fulano",
-                "fulano@test.com",
-                "92 99888-8888",
-                cityManaus
-        );
-
-        Person person3 = new Person(
-                "Beltrana",
-                "beltrana@test.com",
-                "92 99777-7777",
-                cityManaus
-        );
-
         if (nameFilter == null || nameFilter.isEmpty()) {
-            return List.of(person1, person2, person3);
+            return this.personList;
         }
 
-        return Stream.of(person1, person2, person3)
+        return this.personList.stream()
                 .filter(person -> person.getName().toLowerCase().contains(nameFilter.toLowerCase()))
                 .toList();
     }
