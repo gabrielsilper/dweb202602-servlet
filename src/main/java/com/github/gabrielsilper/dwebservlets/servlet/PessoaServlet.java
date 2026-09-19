@@ -14,43 +14,57 @@ import java.util.stream.Stream;
 public class PessoaServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String nameInputParameter = req.getParameter("name-input");
+        String searchNameInputParameter = req.getParameter("search-name-input");
         String actionParameter = req.getParameter("action");
 
-        if (actionParameter ==  null) {
+        if (actionParameter == null) {
             actionParameter = "listar";
         }
 
-        List<Person> persons = this.getPersonsList(nameInputParameter);
+        List<Person> persons = this.getPersonsList(searchNameInputParameter);
 
-        String personsTable = "";
+        String personsHeaderContent = "";
+        String personsMain = "";
+
         if (actionParameter.equalsIgnoreCase("listar")) {
-            personsTable = this.getPersonsTable(persons);
+            personsHeaderContent = this.getPersonHeaderContent();
+            personsMain = this.getPersonsTable(persons);
+        } else if (actionParameter.equalsIgnoreCase("cadastrar")) {
+            personsMain = this.getFormCadastrarPessoa();
         }
 
 
         resp.setContentType("text/html");
         resp.getWriter().printf("""
-                        <!DOCTYPE html>
-                        <html lang="pt-BR">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1">
-                            <title>Olá IFAM!</title>
-                        </head>
-                        <body>
-                            <h1>Olá IFAM!</h1>
-                            <form method="get" action="helloifam">
-                                <div>
-                                    <label for="name-input">Filtra por nome:</label>
-                                    <input type="text" id="name-input" name="name-input" placeholder="Digite o nome que deseja filtrar..."/>
-                                </div>
-                                <button type="submit">Filtrar</button>
-                            </form>
-                            %s
-                        </body>
-                        </html>
-                """, personsTable);
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <title>Pessoas</title>
+                </head>
+                <body>
+                    <h1>Gerenciamento de Pessoas!</h1>
+                    <header>
+                        %s
+                    </header>
+                    %s
+                </body>
+                </html>
+                \s""", personsHeaderContent, personsMain);
+    }
+
+    private String getPersonHeaderContent() {
+        return """
+                <form method="get" action="pessoa">
+                    <div>
+                        <label for="search-name-input">Filtra por nome:</label>
+                        <input type="text" id="search-name-input" name="search-name-input" placeholder="Digite o nome que deseja filtrar..."/>
+                    </div>
+                    <button type="submit">Filtrar</button>
+                </form>
+                <a href="pessoa?action=cadastrar">Cadastrar Pessoa<a>
+                """;
     }
 
     private String getPersonsTable(List<Person> persons) {
@@ -89,6 +103,34 @@ public class PessoaServlet extends HttpServlet {
         }
 
         return sb.toString();
+    }
+
+    private String getFormCadastrarPessoa() {
+        return """
+                <form method="post" action="pessoa">
+                    <div>
+                        <label for="name-input">Nome:</label>
+                        <input type="text" id="name-input" name="name-input" placeholder="Nome da Pessoa"/>
+                    </div>
+                    <div>
+                        <label for="phone-input">Telefone:</label>
+                        <input type="text" id="phone-input" name="phone-input" placeholder="Telefone da Pessoa (ex. 92 99999-9999)"/>
+                    </div>
+                    <div>
+                        <label for="email-input">Email:</label>
+                        <input type="text" id="email-input" name="email-input" placeholder="Email da pessoa"/>
+                    </div>
+                    <div>
+                        <label for="city-input">Cidade:</label>
+                        <input type="text" id="city-input" name="city-input" placeholder="Cidade da pessoa..."/>
+                    </div>
+                    <div>
+                        <label for="state-input">Estado:</label>
+                        <input type="text" id="state-input" name="state-input" placeholder="Estado da cidade..."/>
+                    </div>
+                    <button type="submit">Cadastrar</button>
+                </form>
+                """;
     }
 
     private List<Person> getPersonsList(String nameFilter) {
